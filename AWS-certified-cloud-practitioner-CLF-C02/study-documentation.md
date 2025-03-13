@@ -122,3 +122,82 @@ It's basically our responsibility vs AWS when using the their cloud services
 2. *AWS* is responsibility for the *security of the cloud*, all the hardware, all the software, all their own internal security
 3. That's why we do have this shared responsibility 
 
+# IAM: Users & Groups
+
+- IAM stands for *identity and Access management, **Global** service*
+- *Root account is created by default*, it shouldn't be used or shared with anyone
+- *Users* are people within your organization and can be grouped, even can belong to multiple groups
+- Groups only contain users and groups cannot be created within a group
+- Users don't have to belong to a group can work on it's own and user can belong to multiple groups
+## IAM: Permissions
+
+- Users or Groups can be assigned JSON documents called policies. e.g:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::my-secure-bucket",
+                "arn:aws:s3:::my-secure-bucket/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:StartInstances",
+                "ec2:StopInstances",
+                "ec2:DescribeInstances"
+            ],
+            "Resource": "arn:aws:ec2:us-east-1:123456789012:instance/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "rds:DescribeDBInstances",
+                "rds:StartDBInstance",
+                "rds:StopDBInstance"
+            ],
+            "Resource": "arn:aws:rds:us-east-1:123456789012:db:mydatabase"
+        }
+    ]
+}
+```
+
+- These policies define the permissions of the users
+- In AWS you apply the least privilege principle don't give more permissions than a user need because if a user have more permissions and they turn on some instances that can cause companies big bills 
+- IAM is a global service, so its not based on it's region but some other services do
+- We need to create users, why? Because using root account is not a best practice
+- *Tags* are used everywhere in AWS, it allow use to give metadata to our resources
+## IAM Policies inheritance
+
+Example how policies are inherited:
+
+If there's a group of developers and operations, both groups have their own policies for permissions. However if a guy who belongs to Audit team get added to these 2 groups, he will inherit all the permission policies from all 3 groups. 
+
+- *Inline policy:* it's a policy only attached to the user who's not the part of any group
+### IAM Policies Structure
+
+- *Consists of*:
+  - *Version: policy language* , always include "2012-10-17"
+  - *Id:* an identifier for the policy (optional)
+  - *Statement:* one or more individual statements (required)
+- *Statements consists of:*
+  - Sid: an identifier for the statement (optional)
+  - Effect: whether the statement allows or denies access (allow, deny)
+  - Principle: account/user/role to which this policy applied to
+  - Action: list of actions this policy allows or denies
+  - Resource: list of resources to which the actions applied to
+  - Condition: conditions for when this policy is in effect (optional)
+
+**Refer to**: Course slides for example of *json file which shows the structure of policy in code*
+
+Tip: * star means in *AWS* anything that means any action on any resource is exactly like giving administrator rights to some
+
