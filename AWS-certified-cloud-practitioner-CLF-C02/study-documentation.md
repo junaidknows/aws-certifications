@@ -201,3 +201,113 @@ If there's a group of developers and operations, both groups have their own poli
 
 Tip: * star means in *AWS* anything that means any action on any resource is exactly like giving administrator rights to some
 
+### IAM MFA
+#### IAM- Password Policy
+- Strong passwords = higher security for your account
+- In AWS, we can setup a password policy which allow us:
+ - Set a minimum password length
+ - We can request specific character types 
+   - including UPPERCASE letters
+   - lowercase letters
+   - Numbers 
+   - non-alphanumeric characters i.e. *# $ % ^ & *  !* 
+- We can allow all IAM users to change their own password once they use the generic ones to login for the first time
+- We can prevent reuse of the same password as extra layer of security
+- Password expiry (*User password will be expired in 30 days or 90 days or 180 days*) 
+#### Multi-Factor Authentication - MFA
+
+- AWS makes it mandatory to use MFA as a additional security layer and it's 100% recommended to use it
+- Of course we need to make sure our root accounts and all our IAM users are using MFA to protect their accounts
+- Users have access to your account and they possibly can make some changes to the configurations or delete some of resources in your AWS account
+-  MFA is basically a combination of the password we set up along with a security device i.e. our phones with some sort of authenticator app running on it (Virtual MFA device). i.e. *Microsoft Authenticator, Google Authenticator, Authy or any 3rd party authenticators* or we can use a *Universal 2nd Factor (U2F) Security key by YubiKey* 
+- We also have *Hardware Key Fob MFA device*: **Provided by Gemalto** (*Third party*)
+- Hardware Key Fob MFA device for AWS GovCloud (US government) *Provided by SurePassID* which is also a (*3rd party*) 
+- MFA generates new tokens every 30 seconds so we are not using the same code to get into our account, makes the accounts extra secure rather than just having password
+- One of it's main *benefits are:* if someone has your password or it's stolen, they can use it to log in but MFA won't allow them to go past that stage so that means your account is not compromised
+### Accessing AWS
+*To access AWS we have three options:*
+ - AWS management console (which is protected by password along with MFA)
+ - We also have command line interface (CLI) which we can set up directly on our machines and are protected by *access keys*, this will allow us to access AWS from our terminal directly
+ - The last one is *AWS Software Developer Kit (SDK)* which is used when we have to call API's from AWS from within our application code, this is also protected by *access keys*
+### How to generate access keys?
+ 
+ - Access keys are generated through the *AWS Console*
+ - Every user manage their own access keys
+ - Access keys are secret, just like our passwords, *Never share them with anyone*
+ 
+ Access Key ID = *Username*
+ Secret Access Key = *Password*
+
+Once we have access key id and secret access key, we need to load that up in our command line interface on our machine
+### What's the AWS CLI?
+
+- It's a tool on our computer usually use to get tasks done by running commands on our machine
+- We can interact with AWS services through command line interface by using commands or you can even say by running some codes
+- *It's called AWS CLI:* because when we write commands in CLI, it starts from *~ aws* 
+- With this, we get direct access to the public *APIs* of our AWS services
+- We can develop some scripts to manage our resources and of course can automate certain tasks using those scripts
+- AWS cli is open-source and can be founded on GitHub
+- AWS CLI is an alternative to *AWS Management Console*
+### What's the AWS SDK?
+
+- It's a AWS Software Development kit *(AWS SDK)*
+- It's a set of libraries which are *Language-specific APIs*
+- It will also allow us to enable *AWS services programmatically*
+- SDK is not something we use in our terminal but instead we Embed it within our application which we have to code
+- It supports so many different programming languages like (*Python, Java, JavaScript, .NET, Ruby, Go, Node.js, C++ etc)
+- It also supports mobile SDks i.e. *IOS or Android*
+- And Internet of Things devices in case we are using some thermal sensors or some bike locks that are connected, all these kind of things
+
+A good example given by Stephen (Instructor of this course)
+```markdown
+AWS CLI is built on AWS SDK for Python dubbed as **BOTO***
+```
+
+To install *AWS CLI* on any machine, we can just go to this AWS official documentation: [AWS CLI Installation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+	*Note:* If we need to update the version of CLI, we just need to reinstall it through the installer we download from the documentation
+
+### AWS CloudShell
+
+AWS CloudShell is an alternative *command-line* interface that runs directly within the AWS web browser. However, if it is not visible, ensure that you are in the correct AWS region, as CloudShell is not available in all regions.
+
+### IAM Roles for Services
+
+IAM (Identity and Access Management) **roles for services** in AWS allow AWS services (like EC2, Lambda, etc.) to interact with other AWS services **securely** without needing to store or manually manage access credentials (like usernames or passwords)
+#### **How It Works?**
+
+- Instead of attaching an **IAM User with access keys**, AWS uses **IAM Roles** to provide permissions
+- When a service (e.g., EC2) assumes a role, AWS automatically provides **temporary security credentials** to that service
+- The service can then use these credentials to interact with other AWS services securely
+- *A role is a way to give AWS entities permissions to do stuff on AWS*
+ - When we go to create a role in *IAM*, we can see 5 type of different trusted entity types from where we will choose *AWS SERVICE entity* for exam point of view and this course
+
+### IAM Security Tools
+#### IAM Credentials Report (account-level)
+- A report that lists all your account's users and the status of their various credentials
+- Very helpful to check which user require our attention from a security standpoint e.g. if a user hasn't changed his password for over 6 months. 
+#### IAM Access Advisor (user-level) *New name: LastAccess*
+- Also known as *IAM Security Advisor*
+- Access advisor shows the service permissions granted to a user and when those services were last accessed
+- You can use this information to revise your policies
+	- To access LastAccess, we will go to *users* and select the user and last tab is *LastAccess* which we will access to see which services were accessed by my user and exactly when
+
+### IAM Guidelines & Some Best Practices
+
+- Don't use the root account except for AWS account setup or something which can't be done without a root account
+- One physical user should only have *One AWS account* unless for administrative purposes
+- Assign users to groups and assign permissions to groups rather than assigning permissions to individuals
+- Create strong password policies
+- Use and enforce the use of *MFA*
+- Create and use *Roles* for granting permissions to AWS services
+- Use Access Keys for Programmatic Access (*CLI / SDK*)
+- Audit permissions of your account using *IAM Credentials Report & IAM LastAccess* (*Access Advisor* old name)
+- Never ever share IAM users & Access Keys
+### Shared Responsibility Model for IAM (*v.imp for Exam*)
+
+| AWS responsibility                       | Our Responsibility                                            |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| Infrastructure (global network security) | Users, Groups, Roles, Policies, management and monitoring     |
+| Configuration and vulnerability analysis | Enable MFA on all accounts created                            |
+| Compliance validation                    | Make sure the keys are rotated often                          |
+|                                          | Use IAM tools to apply appropriate permissions                |
+|                                          | Analyze access patterns & review permissions in your accounts |
