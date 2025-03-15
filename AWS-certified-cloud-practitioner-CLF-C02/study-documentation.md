@@ -499,7 +499,6 @@ Can always refer to course slides for detailed purchasing options [[AWS Certifie
 *Analogy:* We can think of it as network USB stick, which we can take it out from one computer to another computer
 
 *Free tier:* 30 GB of free EBS storage of type General Purpose (SSD) or Magnetic per month
-
 ### EBS - Delete on Termination attribute *(imp for exam)*
 
 - Controls the EBS behaviour when an EC2 instance terminates
@@ -507,4 +506,172 @@ Can always refer to course slides for detailed purchasing options [[AWS Certifie
    - By default, any other attached *EBS volume* is not deleted (*attribute disabled*)
 - This can be controlled by the *AWS console* / *AWS CLI*
 - *Use case:* preserve root volume when instance is terminated
+### EBS Snapshots
 
+- Make a backup (snapshot) of your *EBS Volume* at a point in time
+- Not necessary to detach volume to do snapshot, but recommended
+- Can copy snapshots across *AZ or Region*
+#### EBS Snapshots Features
+- *EBS Snapshot Archive:*
+  - Move a Snapshot to an "archive-tier" that is 75% cheaper
+  - Takes within 24 to 72 hours for restoring the archive
+- *Recycle Bin for EBS Snapshots*
+   - Setup rules to retain deleted snapshots so you can recover them after an accidental deletion
+   - Specify retention (*from day 1 to 1 year*) It protects us against accidental deletion
+### AMI 
+- *AMI:* Amazon Machine Image
+- AMI are the *customisation of en EC2 instance*
+   - You add your own software, configuration, operating system, monitoring..
+   - Faster boot/ configuration time because all your software is pre-packaged
+- AMI are built for a specific region (and can be copied across regions)
+- You can launch EC2 instances from:
+   - A Public AMI: *AWS* provided
+   - *Your own AMI:* you make and maintain them yourself
+   - *An AWS Marketplace AMI:* an AMI someone else made (and potentially sells)
+### AMI Process (*from an EC2 instance*)
+
+- Start an EC2 instance and customise it i.e. *installing linux packages or deploy softwares in windows servers*
+- Stop the instance (*for data integrity*)
+- Build an AMI - this will also create EBS snapshots
+- Launch instances from other *AMIs*
+
+### EC2 image builder
+- Used to automate the creation of Virtual Machines or container images
+- -> Automate the creation, maintain, validate and test EC2 AMIs
+- Can be run on a schedule ( weekly, whenever packages are updated etc)
+- Free service (only pay for the underlying resources which means we only pay when the image is created, stored somewhere on cloud and distributed)
+### EC2 Instance Store
+- EBS volumes are network drives with good but "limited" performance
+- If you need a high performance hardware disk, use **EC2 Instance Store**
+##### Why we use Instance Store?
+- To have better performance for I/O
+- EC2 Instance Store lose their storage if they're stopped that's why it's also called *ephemeral* storage as well so that means that EC2 Instance store can not be used as a durable long term place to store your data. 
+- Good for buffer / cache / scratch data / temporary content that's it nut for long run, use EBS for long run for better protection of data
+- Risk of data loss if hardware fails of Instance Store
+- Backups and Replication correctly are our responsibility
+
+### EFS - Elastic File System
+- Managed NFS (network file system) that can be mounted on 100s of EC2
+- EFS works with *Linux EC2 only* instances in multi availability zones
+- Highly available, scalable, expensive 3 times of gp2 storage, pay only upon usage, no capacity planning that means if we use 20GB, we only pay for 20GB of storage
+### EFS Infrequent Access (EFS-IA) (*Imp for exam*)
+- A *storage class* that is cost-optimised for files not accessed every day
+- Up to 92% lower cost compared to *EFS standard* which is another storage class
+- EFS will automatically move your files to EFS-IA based on the last time they were accessed but we need to *Enable EFS-IA* with a Lifecycle Policy
+*Example:* Move files that are not accessed for 60 days to EFS-IA storage that will be cost savings because it's almost 92% lower cost than EFS standard. All this happens automatically
+- It's very transparent to the applications access EFS, no one will know because it all happens behind the scenes, users can access those files anytime again without any problem
+
+### Shared Responsibility Model for EC2 Storage
+
+*AWS Responsibility* : 
+- Their Infrastructure
+- Replication for data for EBS volumes & EFS, so if anytime their's any issues with the hardware the customers are not impacted
+- Replacing faulty hardware
+- Ensuing their employees cannot access your data
+
+*Customers Responsibility:*
+- Setting up backup / snapshot procedures
+- Setting up data encryption
+- Responsibility of any data on the drives
+- Understanding the risk of using EC2 Instance Store
+### Amazon FSx 
+
+- Launch 3rd party high-performance file systems on AWS
+- Fully managed service
+
+**Amazon FSx for Windows File Server**
+- Amazon FSx is the way to deploy FSx for Windows File server over SMB protocol or Windows NTFS storage protocols
+- Our client can access this file server over SMB or even our instances within the same region
+- Integrated with Microsoft Active Directory
+- It can be directly access from AWS or from on-prem infrastructure
+**Amazon FSx for Lustre**
+- A fully managed, high-performance Linux file system, scalable file storage for *High Performance Computing (HPC)*
+- The name *Lustre* is derived from "Linux" and "Cluster"
+- It's mainly for Machine Learning, Analytics, Video Processing, Financial Modeling
+- Scales up to 100s GB/s millions of IOPS, sub-ms latencies
+---
+# ELB & ASG - Elastic Load Balancing & Auto Scalling Groups
+
+## High availability , Scalability, Elasticity
+- Scalability means that an application / system can handle greater loads by adapting
+- There are two kinds of scalability:
+  - Vertical Scalability
+  - Horizontal Scalability (*= elasticity*)
+- Scalability is linked but different to High Availability
+### Vertical Scalability
+- Vertical Scalability means increasing the size of the instance
+- For example: *your application runs on a t2.micro*
+- Scaling that application vertically means running it on a t2.large
+- Vertical scalability is very common for non distributed systems, such as a database
+- There's usually a limit to how much you can vertically scale (*hardware limit)*
+### Horizontal Scalability
+- Horizontal Scalability means increasing the number of instances / systems for your application
+- Horizontal scaling implies distributed systems
+- This is very common for web applications / modern applications
+- When we design something we keep horizontal scalability in mind
+- It's easy to horizontally scale thanks the cloud offerings such as *Amazon EC2*
+### High availability
+- High availability usually goes hand in hand with horizontal scaling
+- High availability means running your application system in at least 2 different availability zones like a failover cluster
+- The goal of high availability is to survive a data centre loss (*disaster*) e.g. Earthquake, Tsunami, Power Outage
+### High Availability & Scalability for EC2
+- **Vertical Scaling:** Increase instance size (*= scale up /down*)
+ - From: *t2.nano - 0.5G of RAM, 1 vCPU*
+ - To: *u-12tb1.metal - 12.3TB of RAM, 448 vCPUs*
+- **Horizontal Scaling:** Increase number of instances (*= scale out/ in*)
+  - Auto Scaling Group
+  - Load Balancer
+- **High Availability:** *Run instances for the same application across multi availability zones*
+  - Auto Scaling Group multi AZ
+  - Load Balancer multi AZ
+### Scalability vs Elasticity (vs Agility) *(imp for exam)*
+
+- ﻿﻿*Scalability:* Ability to accommodate a larger load by making the hardware stronger (scale up), or by adding nodes (scale out)
+- ﻿﻿*Elasticity:* once a system is scalable, elasticity means that there will be some "auto-scaling" so that the system can scale based on the load. This is "cloud-friendly": pay-per-use, match demand, optimize costs
+- ﻿﻿*Agility:* (not related to scalability - distractor) new IT resources are only a click away, which means that you reduce the time to make those resources available to your developers from weeks to just minutes.
+
+### Why use an Elastic Load Balancer?
+
+- ﻿﻿An ELB (Elastic Load Balancer) is a managed load balancer
+  - ﻿﻿AWS guarantees that it will be working
+  - ﻿﻿AWS takes care of upgrades, maintenance, high availability
+  - ﻿﻿AWS provides only a few configuration knobs
+- ﻿﻿It costs less to setup your own load balancer but it will be a lot more effort on your end (maintenance, integrations)
+- 4 kinds of load balancers offered by AWS:
+- Application Load Balancer (TTP / HTTPS only) — Layer 7
+- ﻿﻿Network Load Balancer (ultra-high performance, allows for TCP) - Layer 4
+- ﻿﻿Gateway Load Balancer - Layer 3
+- ﻿﻿Classic Load Balancer (retired in 2023) — Layer 4 & 7
+
+In Depth diagram for all 3 different type of load balancers can be found in this pdf: [[AWS Certified Cloud Practitioner Slides.pdf]]
+
+### How do we create load balancers automatically in the back end? 
+### *We will use Auto Scaling Group*
+
+- In real-life, the load on our websites and application can change
+- ﻿﻿In the cloud, you can create and get rid of servers very quickly
+- ﻿﻿The goal of an Auto Scaling Group (ASG) is to:
+  - ﻿﻿Scale out (add EC2 instances) to match an increased load
+  - ﻿﻿Scale in (remove EC2 instances) to match a decreased load
+  - ﻿﻿Ensure we have a minimum and a maximum number of machines running
+  - ﻿﻿Automatically register new instances to a load balancer
+  - ﻿﻿Replace unhealthy instances
+- *Cost Savings:* only run at an optimal capacity (principle of the cloud)
+### Auto Scaling Groups - Scaling Strategies
+
+- ﻿﻿Manual Scaling: Update the size of an ASG manually
+
+- ﻿﻿Dynamic Scaling: Respond to changing demand
+  - ﻿**Simple / Step Scaling***
+    - ﻿﻿When a CloudWatch alarm is triggered (example CPU > 70%), then add 2 units
+    - ﻿﻿When a CloudWatch alarm is triggered (example CPU < 30%), then remove |
+- ﻿﻿**Target Tracking Scaling**
+   - ﻿﻿Example: I want the average ASG CPU to stay at around 40%
+-  ﻿﻿**Scheduled Scaling:**
+   - ﻿﻿Anticipate a scaling based on known usage patterns
+   - ﻿﻿Example: *increase the min. capacity to 10 at 5 pm on Fridays*
+- *Predictive Scaling:* Uses machine learning to predict the future traffic ahead of time by using patterns of customers visiting our website in the past
+    - Automatically provisions the right number of EC2 instances in advance
+
+ *Useful when your load has predictable time-based patterns*
+ 
