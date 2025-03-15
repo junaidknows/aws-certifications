@@ -312,3 +312,199 @@ IAM (Identity and Access Management) **roles for services** in AWS allow AWS ser
 | Compliance validation                    | Make sure the keys are rotated often                          |
 |                                          | Use IAM tools to apply appropriate permissions                |
 |                                          | Analyze access patterns & review permissions in your accounts |
+
+-------------
+# EC2 Elastic Compute Cloud
+## Amazon EC2
+
+- EC2 is one of the most popular of AWS offerings
+- EC2 = Elastic Compute Cloud = Infrastructure as a Service
+- It mainly consists in the capability of: 
+ - Renting Virtual Machines (EC2)
+ - Storing data on virtual drives (EBS)
+ - We can distribute load acrss machines (ELB)
+ - We can scale the services using an auto-scaling group (ASG)
+- *Knowing EC2 is fundamental to understand how the Cloud works because cloud is just another computer sitting somewhere which we rent according to our needs*
+### EC2 sizing & configuration options
+
+- Operating System (OS): *Linux, Windows or Mac OS*
+- How much compute power & cores (*CPU*)
+- How much random-access memory (*RAM*)
+- How much storage space:
+ - Network-attached (*EBS & EFS*)
+ - Hardware (EC2 instance store)
+- Network card: how much speed we require, public IP address
+- Firewall rules: Security groups
+- *Bootstrap script (configure at first launch): EC2 User Data*
+#### EC2 User Data
+
+- It is possible to bootstrap our instances to use an *EC2 User data* script
+- *bootstrapping* means launching commands when a machine starts
+- The script only *run once* at the instance *first start*
+- EC2 user data is used to automate boot tasks such as:
+  - Installing updates
+  - Installing software
+  - Downloading common files from the internet
+  - Anything we can think of
+  - *Adding more tasks to bootstrap means more loading of boot time*
+- *The EC2 User data script runs with the root user only* 
+### EC2 Instance Types - *General Purpose* (Imp for exam)
+- Great for diversity of workloads like web servers or code repositories
+- Good balance between: 
+ - Compute
+ - Memory
+ - Networking
+- For this course, we will be focusing on t2.micro which is a *general purpose EC2 instance*
+- Amazon naming convention works in the following way: 
+```python
+For example: m5.2xlarge
+
+m: #instance class
+5: #generation (AWS imrpoves them over time, changes the hardware)
+2xlarge: #size within the instance class like ram, cpu, storage etc
+```
+
+### EC2 Instance Types - *Compute Optimised* 
+
+- Great for computer-intensive tasks that require high performance processors:
+ - Batch processing workloads
+ - Media transcoding
+ - High performance web servers
+ - High performance computing (*HPC*)
+ - Scientific modeling & machine learning
+ - Dedicated gaming servers
+ *All the compute instances are of C names e.g. C5, C6 and so on..*
+### EC2 Instance Types - *Memory Optimised*
+
+- Fast performance for workloads that process large data sets in memory
+- Use cases: 
+ - High performance, relational/non-relational databases
+ - Distributed web scale cache stores
+ - In-memory databases optimised for BI (business intelligence)
+ - Applications performing real-time processing of big unstructured data
+ *For memory optimised instances it will be R names series because R stands for RAM but there also going to be X1 or Z1 for high memory instances*
+
+### EC2 Instance Types - *Storage Optimised*
+
+- Great for storage-intensive tasks that require high, sequential read and write access to large data sets on local storage
+- *Use Cases:*
+ - High frequency online transaction processing (OLTP) systems
+ - Relational & NoSQL databases
+ - Cache for in-memory databases (for example, Redis)
+ - Data warehousing applications
+ - Distributed file systems
+--- 
+# Introduction to Security Groups
+
+- Security Groups are the fundamental of network security in AWS
+- They control how traffic is allowed into or out of our *EC2* instances
+- Security groups are like *firewalls* in cloud which controls what traffic can enter EC2 instance and what outbound traffic can EC2 instance perform to access internet
+- Security groups only contain *allow* rules
+- Security groups rules can reference by IP or by security group
+
+## Security Groups (*Deeper Dive*)
+
+- Security groups are acting as firewall on EC2 instances
+- They regulate:
+ - Access to Ports
+ - Authorised IP ranges - IPv4 and IPv6
+ - Control of inbound network (*from outside to the instance*)
+ - Control of outbound network (*from the instance to other*)
+
+**Note:** Anytime we see timeout accessing our server for example if we try to SSH into our server or even a simple browsing to our server, the time out is because there is something wrong with the security groups rules as a firewall, so we always investigate it
+
+### Classic Ports (*Important for Exam*)
+
+- 22 = SSH (Secure Shell) - log into a Linux instance
+- 21 = FTP (File Transfer Protocol) - upload files into a file share
+- 22 = SFTP (Secure File Transfer Protocol) - upload files using SSH
+- 80 = HTTP - access unsecured websites
+- 443 = HTTPS - access secured websites
+- 3389 = RDP (Remote Desktop Protocol) - log into a Windows Instance
+
+#### SSH into EC2 instance linux method:
+
+1. Download secret key for our instance e.g. *EC2*
+2. Put the download .pem file into the working directory
+3. Once it's done, use the following command to get into EC2 through SSH
+```SSH
+ssh -i EC2-First\ Instance.pem ec2-user@3.25.172.105
+
+#We use ec2-user and ipv4 public address of our instance to login
+```
+4. If we get an error like *Unprotected file* , we use the following command to authenticate the key
+```SSH
+
+chmod 0400 EC2-first-instance.pem #We replace the file name with our actual key file name
+
+Once it's authenticated we can run the above command to log in
+```
+
+#### EC2 Instance Connect - Direct Access Through Browser
+
+1. Just go to our instances
+2. Click connect
+3. And that's it
+4. If EC2 instance connect ask for our configuration e.g. access key or secret access key *never ever enter those in any EC2 instances as a rule of thumb otherwise it will be visible to other account holders using that instance*
+5. Instead we will use *IAM Roles*
+6. So for example: we create one IAM Role for EC2 service with Iamready only access policy attached to it
+7. We will go to our instances *EC2* , we select our instance, we click *action* tab then head to *security section*
+8. In *security* section we will click *modify IAM role* and select the role we created for this instance
+9. It will give it the configuration instead of us doing it which is not ideal in this case
+10. This is how we provide the AWS configuration credential through *IAM* Roles always
+
+*Note:* Use IAM roles always for *EC2 instances*
+
+## EC2 Instances Purchasing Options
+
+- On-Demand Instances: short workload, predictable pricing, pay by second
+- Reserved (*1 & 3 years*)
+   - Reserved Instances - long workloads
+   - Convertible Reserved Instances - long workloads with flexible instances
+- Saving Plans (*1 & 3 years*) - commitment to an amount of usage, long workload
+- Spot Instances - short workloads, cheap, can lose instances (*less reliable*)
+- Dedicated Hosts - book an entire physical server, control instance placement
+- Dedicated Instances - no other customers will share your hardware
+- Capacity Resources - reserver capacity in specific AZ for any duration
+
+### EC2 on Demand
+
+-  Pay for what we use:
+  -  Linux or Windows- billing per second, after the first minute
+  - All other operating systems - billing per hour
+- Has the highest cost but no upfront payment
+- No long-term commitment
+*Recommended for short-term and uninterrupted workloads, where you can't predict how the application will behave*
+
+Can always refer to course slides for detailed purchasing options [[AWS Certified Cloud Practitioner Slides.pdf]]
+
+### Which option is good for me? (*As beginner*)
+
+##### We can think of all the pricing for like it's a resort 
+- *On demand:* coming and staying in like a resort whenever we like, we pay the full price
+- *Reserved:* like planning ahead and if we plan to stay for a long time, we may get a good discount
+- *Savings Plans:* pay a certain amount per hour for certain period and stay in any room type (e.g. King, Suite, Sea View..)
+- *Spot Instances:* the hotel allows people to bid for the empty rooms and the highest bidder keeps the rooms. you can get kicked out at any time
+- *Dedicated Hosts:* we book an entire building of the resort
+- *Capacity Reservations:* you book a room for a period with full price even you don't stay in it
+---
+# EC2 Instance Storage
+
+## What's an EBS Volume?
+- An *EBS (Elastic Block Store) Volume* is a *network* drive you can attach your instances while they run
+- it allows your instances to persist data, even after their termination
+- They can only be mounted to one instance at a time (at Certified Cloud Practitioner level)
+- They are bound to a specific availability zone
+
+*Analogy:* We can think of it as network USB stick, which we can take it out from one computer to another computer
+
+*Free tier:* 30 GB of free EBS storage of type General Purpose (SSD) or Magnetic per month
+
+### EBS - Delete on Termination attribute *(imp for exam)*
+
+- Controls the EBS behaviour when an EC2 instance terminates
+   - By default, the root *EBS volume* is deleted (*attribute enabled*)
+   - By default, any other attached *EBS volume* is not deleted (*attribute disabled*)
+- This can be controlled by the *AWS console* / *AWS CLI*
+- *Use case:* preserve root volume when instance is terminated
+
