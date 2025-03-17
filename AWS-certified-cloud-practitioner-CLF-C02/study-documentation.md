@@ -674,7 +674,6 @@ In Depth diagram for all 3 different type of load balancers can be found in this
     - Automatically provisions the right number of EC2 instances in advance
 
  *Useful when your load has predictable time-based patterns*
-
 ---
 # Amazon S3
 
@@ -912,4 +911,3 @@ We have to pay for everything except for data transfer IN to Amazon S3 is $0.00 
 
 - Storing data on disk (EFS, EBS, EC2 Instance Store, S3) can have it's limitations
 - Sometimes, you want to store data in a database instead
-
