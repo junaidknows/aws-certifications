@@ -674,4 +674,240 @@ In Depth diagram for all 3 different type of load balancers can be found in this
     - Automatically provisions the right number of EC2 instances in advance
 
  *Useful when your load has predictable time-based patterns*
- 
+---
+# Amazon S3
+
+## Introduction
+- Amazon S3 is one of the main building blocks of AWS
+- It's advertised as "infinitely scaling" storage
+- Many websites use Amazon S3 as backbone
+- Many AWS services use Amazon S3 as an integration as well
+
+## Amazon S3 use cases
+- Backup and storage
+- Disaster Recovery
+- Archive
+- Hybrid Cloud Storage
+- Application hosting
+- Media hosting
+- Data leaks & big data analytics
+- Software delivery
+- Static website
+Examples: *Nasdaq stores 7 years of data into S3 Glacier* and Sysco runs analytics on its data and gain business insights
+
+## Amazon S3 - Buckets
+
+- ﻿﻿Amazon S3 allows people to store objects (files) in "buckets" (directories)
+- ﻿﻿Buckets must have a globally unique name (across all regions all accounts)
+- ﻿﻿Buckets are defined at the region level
+- ﻿﻿S3 looks like a global service but buckets are created in a region
+- ﻿﻿Naming convention
+   - ﻿﻿No uppercase, No underscore
+   - ﻿﻿3-63 characters long
+   - ﻿﻿Not an IP
+   - ﻿﻿Must start with lowercase letter or number
+   - ﻿﻿Must NOT start with the prefix xn--
+
+**S3 Bucket**
+
+*Must NOT end with the suffix -salias*
+
+## Amazon S3 - Objects
+
+- ﻿﻿Objects (files) have a Key
+- ﻿﻿The key is the FULL path:
+    - ﻿﻿s3://my-bucket/my_file.txt
+    - ﻿﻿s3://my-bucket/my_folderl/another_folder/my_file.txt
+- ﻿﻿The key is composed of prefix + object name
+   - ﻿﻿s3://my-bucket/my_folder|/another_folder/my_file.txt
+- ﻿﻿There's no concept of "directories" within buckets (although the Ul will trick you to think otherwise)
+- ﻿﻿Just keys with very long names that contain slashes ("/")
+- ﻿﻿Object values are the content of the body:
+    - ﻿﻿Max. Object Size is 5 TB (5000GB)
+    - ﻿﻿If uploading more than 5GB, must use "multi-part upload"
+- ﻿﻿Metadata (list of text key / value pairs - system or user metadata)
+- ﻿﻿Tags (Unicode key / value pair - up to 10) - useful for security / lifecycle
+- ﻿﻿Version ID (if versioning is enabled)
+
+## Amazon S3 - Security
+
+- ﻿﻿User-Based
+  - ﻿﻿IAM Policies — which API calls should be allowed for a specific user from IAM
+- ﻿﻿Resource-Based
+  - ﻿﻿Bucket Policies - bucket wide rules from the S3 console - allows cross account
+  - ﻿﻿Object Access Control List (ACL) - finer grain (can be disabled)
+  - ﻿﻿Bucket Access Control List (ACL) - less common (can be disabled)
+- ﻿﻿*Note:* an IAM principal can access an S3 object if
+  - ﻿﻿The user IAM permissions ALLOW it OR the resource policy ALLOWS it.
+  - ﻿﻿AND there's no explicit DENY
+- ﻿﻿*Encryption:* encrypt objects in Amazon S3 using encryption keys
+
+## S3 Bucket Policies
+
+- ﻿﻿**JSON based policies**
+  - ﻿﻿Resources: buckets and objects
+  - ﻿﻿Effect: Allow / Deny
+  - ﻿﻿Actions: Set of APl to Allow or Deny
+  - ﻿﻿Principal: The account or user to apply the policy to
+
+
+- **Use S3 bucket for policy to:**
+  - ﻿﻿Grant public access to the bucket
+  - ﻿﻿Force objects to be encrypted at upload
+ - ﻿﻿Grant access to another account (Cross  
+    Account)
+
+Example of the json file:
+```json
+"Version": "2012-10-17",
+
+"Statement": [
+
+{
+
+"Sid": "PublicRead",
+
+"Effect": "Allow",
+
+"Principal": "*",
+
+"Action": [
+
+"s3: GetObject"
+
+1, "Resource": [
+
+"arn:aws:s3:::examplebucket/*"
+ ]
+ }
+    ]
+}
+```
+
+When we create the S3 bucket policies to make it publicly available we can use aws s3 policy generator. 
+
+1. Select policy type : *S3 bucket policy*
+2. Principle we will add * (that means get everything)
+3. Actions: *Get object* (from the dropdown list)
+4. Amazon Resource name (ARN): we can copy this from our bucket name and at the end of the bucket name we will add /*
+5. Now hit Generate Policy
+6. Once the policy is generated we will just paste it in the bucket policies
+
+## Amazon S3 - Static Website Hosting
+
+- S3 can host static websites have have them accessible on the internet
+## Amazon S3 - Versioning
+
+- ﻿﻿You can version your files in Amazon S3
+- ﻿﻿It is enabled at the bucket level
+- ﻿﻿Same key overwrite will change the "version": 1, 2, 3....
+- ﻿﻿It is best practice to version your buckets
+  - ﻿﻿Protect against unintended deletes (ability to restore a version)
+  - ﻿﻿Easy roll back to previous version
+*Notes:*
+- ﻿﻿Any file that is not versioned prior to enabling versioning will have version "null"
+- ﻿﻿Suspending versioning does not delete the previous versions
+## Amazon S3 - Replication (CRR & SRR)
+
+- **CRR:** Cross-region replication
+- **SRR:** Same region replication
+
+*The main purpose of this is having one bucket in one region and another bucket in another region* and we need to set up *asynchronous replication*
+
+To do that, we need to ensure:
+- Must enable Versioning in source and destination buckets
+- If we choose *CRR*, the two regions will be different
+- If we choose *SRR*, the two regions will be the same
+- It's possible to have these buckets with different *AWS accounts*
+- Copying is asynchronous
+- To make replication work, you must give proper IAM permissions to S3, so it has permissions to read and write
+
+## S3 Storage Classes (*important for exam*)
+
+- ﻿﻿Amazon S3 Standard - General Purpose
+- ﻿﻿Amazon S3 Standard-Infrequent Access (IA)
+- ﻿﻿Amazon S3 One Zone-Infrequent Access
+- ﻿﻿Amazon S3 Glacier Instant Retrieval
+- ﻿﻿Amazon S3 Glacier Flexible Retrieval
+- ﻿﻿Amazon S3 Glacier Deep Archive
+- ﻿﻿Amazon S3 Intelligent Tiering
+
+For in depth refer to: [[AWS Certified Cloud Practitioner Slides.pdf]]
+## S3 Durability and Availability
+
+**Durability:**
+  - ﻿﻿High durability (99.999999999%, 1 1 9's) of objects across multiple AZ
+  - ﻿﻿If you store 10,000,000 objects with Amazon S3, you can on average expect to incur a loss of a single object once every 10,000 years
+  - ﻿﻿Same for all storage classes
+  **Availability:**
+  - ﻿﻿Measures how readily available a service is
+  - ﻿﻿Varies depending on storage class
+  
+*Example:* S3 standard has 99.99% availability = not available 53 minutes a year
+## S3 Standard - General Purpose
+
+- ﻿﻿99.99% Availability
+- ﻿﻿Used for frequently accessed data
+- ﻿﻿Low latency and high throughput
+- ﻿﻿Sustain 2 concurrent facility failures
+
+*Use Cases:* Big Data analytics, mobile & gaming applications, content distribution
+
+**Note:** 
+*When selecting any of these classes, we will first upload the data. Before completing the upload, we will navigate to the file's properties to specify the appropriate class based on our requirements within the bucket.* *We can also modify the storage class of an item that has already been uploaded to the bucket.* We can even automate moving these objects to different classes by creating it's life cycle rule, under the management tab of our file. 
+## S3 Encryption (*imp exam*)
+There's 2 type of encryption which we can look at for S3 buckets:
+**Server-side encryption** (*Default*)
+When the user uploads the file, the server encrypts the file after receiving it by default it's always on
+
+**Client-side encryption**
+When the user *encrypts* the file before uploading to a Amazon bucket S3
+## IAM Access Analyzer for S3 
+- It make sures that only intended people have access to our S3 buckets
+*Example:* publicly accessible bucket, bucket shared with other AWS account
+- It evaluates S3 bucket policies, S3 ACLs, S3 Access Point Policies
+- Powered by IAM Access Analyzer
+## Shared Responsibility Model for S3
+
+*By AWS:*
+- Infrastructure, (global security, durability, availability, sustain concurrent loss of data in two facilities)
+- Configuration and vulnerability analysis
+- Compliance Validation
+
+*By Us (client side):*
+- S3 Versioning
+- S3 bucket policies
+- S3 replication setup
+- Logging and Monitoring
+- S3 Storage Classes
+- Data encryption at rest and in transit
+## AWS Snowball
+- It's a physical device to perform offline big data migration
+- Highly-secure portable devices to *collect and process data at the edge, and migrate data into and out of AWS
+- Helps migrate up to *Petabytes* of data
+
+There are 2 types of snowball edge devices
+
+| Device                            | Compute   | Memory | Storage (SSD) |
+| --------------------------------- | --------- | ------ | ------------- |
+| Snowball Edge *Storage* Optimized | 104 vCPUs | 416 GB | 210 TB        |
+| Snowball Edge *Compute* Optimized | 104 vCPUs | 416 GB | 28 TB         |
+*AWS Snowball:* offline devices to perform data migrations if it takes more than a week to transfer over the network, we use snowball devices
+### What is edge computing?
+
+- Process data while it's being created on an edge location
+   - For example: a truck on the road, a ship on the sea, mining station underground, where these people don't have access to internet
+- These locations may have limited internet and no access to computing power
+- We order and set up *Snowball Edge Devices* to do edge computing
+  - Snowball Edge compute optimized (*dedicated for this use case*) & storage optimized
+Some use cases for edge computing: *preprocess data, machine learning, transcoding media*
+## Snowball Edge Pricing: (*imp exam*)
+We have to pay for everything except for data transfer IN to Amazon S3 is $0.00 per GB 
+
+## AWS Storage Gateway
+- *AWS Storage Gateway* allows us to bridge whatever happens on premises directly to the cloud so we can have a hybrid storage system for our organization
+ ***
+# Databases
+
+- Storing data on disk (EFS, EBS, EC2 Instance Store, S3) can have it's limitations
+- Sometimes, you want to store data in a database instead
